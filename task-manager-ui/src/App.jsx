@@ -105,11 +105,39 @@ export default function App() {
   }
 
   function addItem(listId, name) {
-
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+            ...list,
+            items: [...list.items, 
+              {
+                id: list.items[list.items.length - 1].id + 1,
+                name: name,
+                status: "ACTIVE"
+              }
+            ]
+          }
+      )
+    );
   }
 
   function removeItem(listId, itemId) {
-
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+            ...list,
+            items: list.items.map(item =>
+              item.id !== itemId
+                ? item
+                : null
+            )
+          }
+      )
+    );
   }
 
   return <ListCollabSpace lists={lists} onToggle={toggleItem}/>;
