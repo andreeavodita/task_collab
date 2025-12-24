@@ -32,7 +32,7 @@ function ListItem({item, onToggle}) {
         <input
           type="checkbox"
           checked={isChecked}
-          onChange={() => onToggle(item.id)}
+          onChange={onToggle}
         />
         <span>
           {item.name}
@@ -42,10 +42,7 @@ function ListItem({item, onToggle}) {
   )
 }
 
-function List({ items }) {
-  function toggleItem(id) {
-
-  }
+function List({ listId, items, onToggle }) {
 
   return (
     <ul>
@@ -53,7 +50,7 @@ function List({ items }) {
         <ListItem 
           key={item.name} 
           item={item} 
-          onToggle={toggleItem}
+          onToggle={() => onToggle(listId, item.id)}
         />
       ))}  
     </ul>
@@ -64,21 +61,21 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list}) {
+function TitledList({list, onToggle}) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
       <div className='list-divider'/>
-      <List items={list.items}/>
+      <List listId={list.id} items={list.items} onToggle={onToggle}/>
     </div>
   )
 }
 
-function ListCollabSpace({lists}) {
+function ListCollabSpace({lists, onToggle}) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
-        <TitledList key={list.id} list={list} />
+        <TitledList key={list.id} list={list} onToggle={onToggle}/>
       ))}
     </div>
   )
@@ -87,5 +84,61 @@ function ListCollabSpace({lists}) {
 export default function App() {
   const [lists, setLists] = useState(LISTS);
 
-  return <ListCollabSpace lists={lists} />;
+  function toggleItem(listId, itemId) {
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+              ...list,
+              items: list.items.map(item =>
+                item.id !== itemId
+                  ? item
+                  : {
+                      ...item,
+                      status: item.status === "DONE" ? "ACTIVE" : "DONE"
+                    }
+              )
+            }
+      )
+    );
+  }
+
+  function addItem(listId, name) {
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+            ...list,
+            items: [...list.items, 
+              {
+                id: list.items[list.items.length - 1].id + 1,
+                name: name,
+                status: "ACTIVE"
+              }
+            ]
+          }
+      )
+    );
+  }
+
+  function removeItem(listId, itemId) {
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+            ...list,
+            items: list.items.map(item =>
+              item.id !== itemId
+                ? item
+                : null
+            )
+          }
+      )
+    );
+  }
+
+  return <ListCollabSpace lists={lists} onToggle={toggleItem}/>;
 }
