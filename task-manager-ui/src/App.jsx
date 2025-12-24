@@ -15,7 +15,7 @@ const LISTS = [
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   
-  //   {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
+  // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
@@ -85,5 +85,7 @@ function ListCollabSpace({lists}) {
 }
 
 export default function App() {
-  return <ListCollabSpace lists={LISTS} />;
+  const [lists, setLists] = useState(LISTS);
+
+  return <ListCollabSpace lists={lists} />;
 }
