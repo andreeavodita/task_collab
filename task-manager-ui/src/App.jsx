@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import trash from './assets/trashcan.svg';
 
 const ITEMS = [
   {id: 1, name: "Milk", status: "ACTIVE"},
@@ -26,7 +27,7 @@ const LISTS = [
 function DeleteButton({ removeItem, itemId, listId}) {
   return <button className='deleteitembutton'
                  onClick={() => removeItem(listId, itemId)}>
-                  'X'
+                 <img src={trash} alt="Trash" />
                  </button>
 }
 
@@ -149,7 +150,7 @@ export default function App() {
             ...list,
             items: [...list.items, 
               {
-                id: list.items[list.items.length - 1].id + 1,
+                id: list.items.length !== 0 ? (list.items[list.items.length - 1].id + 1) : 1,
                 name: name,
                 status: "ACTIVE"
               }
@@ -166,11 +167,8 @@ export default function App() {
           ? list
           : {
             ...list,
-            items: list.items.map(item =>
-              item.id !== itemId
-                ? item
-                : null
-            ).filter(item => item !== null)
+            items: list.items.filter(
+              item => item.id !== itemId)
           }
       )
     );
