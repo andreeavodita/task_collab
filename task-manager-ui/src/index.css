@@ -82,12 +82,30 @@ li label {
   cursor: pointer;
 }
 
-div.done {
+li.list-item-done {
   opacity: 0.5;
 }
 
-div.done span {
+li.list-item-done span {
   text-decoration: line-through;
+}
+
+.list-item- {
+  display: flex;
+  align-items: center;
+  gap: 0.5 rem;
+  padding: 0.5 rem 0;
+}
+
+.list-item-done {
+  display: flex;
+  align-items: center;
+  gap: 0.5 rem;
+  padding: 0.5 rem 0;
+}
+
+.item-name {
+  flex: 1;
 }
 
 .lists-grid {
@@ -123,4 +141,30 @@ div.done span {
   width: 100%;
   max-width: 320px;
   background: var(--bg); 
+}
+
+.deleteitembutton {
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteitembutton img {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.deleteitembutton:hover img {
+  opacity: 0.7;
+}
+
+.deleteitembutton:hover {
+  transform: scale(1.1);
 }

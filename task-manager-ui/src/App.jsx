@@ -35,19 +35,23 @@ function ListItem({item, listId, onToggle, removeItem}) {
   const isChecked = item.status === "DONE";
 
   return (
-    <div className={isChecked ? "done" : ""}>
-      <label>
-        <input
-          type="checkbox"
-          checked={isChecked}
-          onChange={onToggle}
-        />
-        <span>
-          {item.name}
-        </span>
-        <DeleteButton removeItem={removeItem} itemId={item.id} listId={listId}/>
-      </label>
-    </div>
+    <li className={`list-item-${isChecked ? "done" : ""}`}>
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={onToggle}
+      />
+
+      <span className="item-name">
+        {item.name}
+      </span>
+
+      <DeleteButton 
+        removeItem={removeItem} 
+        itemId={item.id} 
+        listId={listId}
+      />
+    </li>
   )
 }
 
