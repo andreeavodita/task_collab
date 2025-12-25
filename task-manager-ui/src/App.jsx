@@ -23,7 +23,14 @@ const LISTS = [
   {id:2, title: "TO DOs", items: [ITEMS[3], ITEMS[4]]}
 ];
 
-function ListItem({item, onToggle}) {
+function DeleteButton({ removeItem, itemId, listId}) {
+  return <button className='deleteitembutton'
+                 onClick={() => removeItem(listId, itemId)}>
+                  'X'
+                 </button>
+}
+
+function ListItem({item, listId, onToggle, removeItem}) {
   const isChecked = item.status === "DONE";
 
   return (
@@ -37,12 +44,13 @@ function ListItem({item, onToggle}) {
         <span>
           {item.name}
         </span>
+        <DeleteButton removeItem={removeItem} itemId={item.id} listId={listId}/>
       </label>
     </div>
   )
 }
 
-function List({ listId, items, onToggle }) {
+function List({ listId, items, onToggle, removeItem }) {
 
   return (
     <ul>
@@ -50,7 +58,9 @@ function List({ listId, items, onToggle }) {
         <ListItem 
           key={item.id} 
           item={item} 
+          listId={listId}
           onToggle={() => onToggle(listId, item.id)}
+          removeItem={removeItem}
         />
       ))}  
     </ul>
@@ -61,12 +71,16 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle, addItem }) {
+function TitledList({list, onToggle, addItem, removeItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
       <div className='list-divider'/>
-      <List listId={list.id} items={list.items} onToggle={onToggle}/>
+      <List 
+          listId={list.id} 
+          items={list.items} 
+          onToggle={onToggle}
+          removeItem={removeItem}/>
       <input
           type="checkbox"
           checked={false}
@@ -87,11 +101,17 @@ function TitledList({list, onToggle, addItem }) {
   )
 }
 
-function ListCollabSpace({lists, onToggle, addItem }) {
+function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
-        <TitledList key={list.id} list={list} onToggle={onToggle} addItem={addItem}/>
+        <TitledList 
+            key={list.id} 
+            list={list} 
+            onToggle={onToggle} 
+            addItem={addItem}
+            removeItem={removeItem}    
+        />
       ))}
     </div>
   )
@@ -150,11 +170,16 @@ export default function App() {
               item.id !== itemId
                 ? item
                 : null
-            )
+            ).filter(item => item !== null)
           }
       )
     );
   }
 
-  return <ListCollabSpace lists={lists} onToggle={toggleItem} addItem={addItem}/>;
+  return <ListCollabSpace 
+            lists={lists} 
+            onToggle={toggleItem} 
+            addItem={addItem} 
+            removeItem={removeItem}
+          />;
 }
