@@ -48,7 +48,7 @@ function List({ listId, items, onToggle }) {
     <ul>
       {items.map(item => (
         <ListItem 
-          key={item.name} 
+          key={item.id} 
           item={item} 
           onToggle={() => onToggle(listId, item.id)}
         />
@@ -61,21 +61,37 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle}) {
+function TitledList({list, onToggle, addItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
       <div className='list-divider'/>
       <List listId={list.id} items={list.items} onToggle={onToggle}/>
+      <input
+          type="checkbox"
+          checked={false}
+          onChange={onToggle}
+      />
+      <input
+        type="text"
+        onKeyDown={
+          (e) => {
+            if (e.key === "Enter") {
+              addItem(list.id, e.target.value);
+              e.target.value = "";
+            }
+          }
+        }
+      />
     </div>
   )
 }
 
-function ListCollabSpace({lists, onToggle}) {
+function ListCollabSpace({lists, onToggle, addItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
-        <TitledList key={list.id} list={list} onToggle={onToggle}/>
+        <TitledList key={list.id} list={list} onToggle={onToggle} addItem={addItem}/>
       ))}
     </div>
   )
@@ -140,5 +156,5 @@ export default function App() {
     );
   }
 
-  return <ListCollabSpace lists={lists} onToggle={toggleItem}/>;
+  return <ListCollabSpace lists={lists} onToggle={toggleItem} addItem={addItem}/>;
 }
