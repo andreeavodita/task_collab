@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useRef } from 'react'
+import { useEffect } from 'react'
 import trash from './assets/trashcan.svg';
 
 const ITEMS = [
@@ -36,7 +38,13 @@ function ListItem({item, listId, onToggle, removeItem, editItem }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(item.name);
 
-  console.log(isEditing)
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
 
   return (
     <li className={`list-item-${isChecked ? "done" : ""}`}>
@@ -49,6 +57,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem }) {
       {
         isEditing ? (
           <input className="item-name" 
+                  ref={inputRef}
                   onChange={
                     (e) => setDraftName(e.target.value)
                   }
