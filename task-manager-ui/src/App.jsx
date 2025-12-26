@@ -31,8 +31,12 @@ function DeleteButton({ removeItem, itemId, listId}) {
                  </button>
 }
 
-function ListItem({item, listId, onToggle, removeItem}) {
+function ListItem({item, listId, onToggle, removeItem, editItem }) {
   const isChecked = item.status === "DONE";
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftName, setDraftName] = useState(item.name);
+
+  console.log(isEditing)
 
   return (
     <li className={`list-item-${isChecked ? "done" : ""}`}>
@@ -42,9 +46,31 @@ function ListItem({item, listId, onToggle, removeItem}) {
         onChange={onToggle}
       />
 
-      <span className="item-name">
-        {item.name}
-      </span>
+      {
+        isEditing ? (
+          <input className="item-name" 
+                  onChange={
+                    (e) => setDraftName(e.target.value)
+                  }
+                  onKeyDown={
+                    (e) => {
+                      if (e.key === "Enter") {
+                        editItem(listId, item.id, draftName);
+                        setIsEditing(false)
+                      }
+                    }
+                  }
+                  value={draftName}
+          />
+        ) : (
+          <span className="item-name" onClick={() => {
+            setIsEditing(true)
+            setDraftName(item.name)
+          }}>
+            {item.name}
+          </span>
+        )
+      }
 
       <DeleteButton 
         removeItem={removeItem} 
@@ -55,7 +81,7 @@ function ListItem({item, listId, onToggle, removeItem}) {
   )
 }
 
-function List({ listId, items, onToggle, removeItem }) {
+function List({ listId, items, onToggle, removeItem, editItem }) {
 
   return (
     <ul>
@@ -66,6 +92,7 @@ function List({ listId, items, onToggle, removeItem }) {
           listId={listId}
           onToggle={() => onToggle(listId, item.id)}
           removeItem={removeItem}
+          editItem={editItem}
         />
       ))}  
     </ul>
@@ -76,7 +103,7 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle, addItem, removeItem }) {
+function TitledList({list, onToggle, addItem, removeItem, editItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
@@ -85,7 +112,8 @@ function TitledList({list, onToggle, addItem, removeItem }) {
           listId={list.id} 
           items={list.items} 
           onToggle={onToggle}
-          removeItem={removeItem}/>
+          removeItem={removeItem}
+          editItem={editItem}/>
       <input
           type="checkbox"
           checked={false}
@@ -106,7 +134,7 @@ function TitledList({list, onToggle, addItem, removeItem }) {
   )
 }
 
-function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
+function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
@@ -116,6 +144,7 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
             onToggle={onToggle} 
             addItem={addItem}
             removeItem={removeItem}    
+            editItem={editItem}
         />
       ))}
     </div>
@@ -178,10 +207,31 @@ export default function App() {
     );
   }
 
+  function editItem(listId, itemId, name) {
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+              ...list,
+              items: list.items.map(item =>
+                item.id !== itemId
+                  ? item
+                  : {
+                      ...item,
+                      name: name
+                    }
+              )
+            }
+      )
+    );
+  }
+
   return <ListCollabSpace 
             lists={lists} 
             onToggle={toggleItem} 
             addItem={addItem} 
             removeItem={removeItem}
+            editItem={editItem}
           />;
 }
