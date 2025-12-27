@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useRef } from 'react'
+import { useEffect } from 'react'
 import trash from './assets/trashcan.svg';
 
 const ITEMS = [
@@ -31,8 +33,20 @@ function DeleteButton({ removeItem, itemId, listId}) {
                  </button>
 }
 
-function ListItem({item, listId, onToggle, removeItem}) {
+function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
   const isChecked = item.status === "DONE";
+  const [draftName, setDraftName] = useState(item.name);
+
+  const isEditing = editingItem?.listId === listId && 
+                    editingItem?.itemId === item.id;
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
 
   return (
     <li className={`list-item-${isChecked ? "done" : ""}`}>
@@ -42,9 +56,40 @@ function ListItem({item, listId, onToggle, removeItem}) {
         onChange={onToggle}
       />
 
-      <span className="item-name">
-        {item.name}
-      </span>
+      {
+        isEditing ? (
+          <input className="item-name"  
+                  ref={inputRef}
+                  onChange={
+                    (e) => setDraftName(e.target.value)
+                  }
+                  onBlur={() => {
+                    setDraftName(item.name);
+                    setEditingItem(null);
+                  }}
+                  onKeyDown={
+                    (e) => {
+                      if (e.key === "Enter") {
+                        editItem(listId, item.id, draftName);
+                        setEditingItem(null);
+                      }
+                      if (e.key === "Escape") {
+                        setDraftName(item.name);
+                        setEditingItem(null);
+                      }
+                    }
+                  }
+                  value={draftName}
+          />
+        ) : (
+          <span className="item-name" onClick={() => {
+            setEditingItem({listId, itemId: item.id});
+            setDraftName(item.name)
+          }}>
+            {item.name}
+          </span>
+        )
+      }
 
       <DeleteButton 
         removeItem={removeItem} 
@@ -55,7 +100,7 @@ function ListItem({item, listId, onToggle, removeItem}) {
   )
 }
 
-function List({ listId, items, onToggle, removeItem }) {
+function List({ listId, items, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
 
   return (
     <ul>
@@ -66,6 +111,9 @@ function List({ listId, items, onToggle, removeItem }) {
           listId={listId}
           onToggle={() => onToggle(listId, item.id)}
           removeItem={removeItem}
+          editItem={editItem}
+          editingItem={editingItem}
+          setEditingItem={setEditingItem}
         />
       ))}  
     </ul>
@@ -76,7 +124,7 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle, addItem, removeItem }) {
+function TitledList({list, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
@@ -85,7 +133,11 @@ function TitledList({list, onToggle, addItem, removeItem }) {
           listId={list.id} 
           items={list.items} 
           onToggle={onToggle}
-          removeItem={removeItem}/>
+          removeItem={removeItem}
+          editItem={editItem}
+          editingItem={editingItem}
+          setEditingItem={setEditingItem}
+          />
       <input
           type="checkbox"
           checked={false}
@@ -106,7 +158,7 @@ function TitledList({list, onToggle, addItem, removeItem }) {
   )
 }
 
-function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
+function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
@@ -116,6 +168,9 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
             onToggle={onToggle} 
             addItem={addItem}
             removeItem={removeItem}    
+            editItem={editItem}
+            editingItem={editingItem}
+            setEditingItem={setEditingItem}
         />
       ))}
     </div>
@@ -124,6 +179,7 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem }) {
 
 export default function App() {
   const [lists, setLists] = useState(LISTS);
+  const [editingItem, setEditingItem] = useState(null);
 
   function toggleItem(listId, itemId) {
     setLists(prevLists =>
@@ -178,10 +234,33 @@ export default function App() {
     );
   }
 
+  function editItem(listId, itemId, name) {
+    setLists(prevLists =>
+      prevLists.map(list =>
+        list.id !== listId
+          ? list
+          : {
+              ...list,
+              items: list.items.map(item =>
+                item.id !== itemId
+                  ? item
+                  : {
+                      ...item,
+                      name: name
+                    }
+              )
+            }
+      )
+    );
+  }
+
   return <ListCollabSpace 
             lists={lists} 
             onToggle={toggleItem} 
             addItem={addItem} 
             removeItem={removeItem}
+            editItem={editItem}
+            editingItem={editingItem}
+            setEditingItem={setEditingItem}
           />;
 }
