@@ -33,10 +33,12 @@ function DeleteButton({ removeItem, itemId, listId}) {
                  </button>
 }
 
-function ListItem({item, listId, onToggle, removeItem, editItem }) {
+function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
   const isChecked = item.status === "DONE";
-  const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(item.name);
+
+  const isEditing = editingItem?.listId === listId && 
+                    editingItem?.itemId === item.id;
 
   const inputRef = useRef(null);
 
@@ -56,16 +58,17 @@ function ListItem({item, listId, onToggle, removeItem, editItem }) {
 
       {
         isEditing ? (
-          <input className="item-name" 
+          <input className="item-name"  
                   ref={inputRef}
                   onChange={
                     (e) => setDraftName(e.target.value)
                   }
+                  onBlur={() => setEditingItem(null)}
                   onKeyDown={
                     (e) => {
                       if (e.key === "Enter") {
                         editItem(listId, item.id, draftName);
-                        setIsEditing(false)
+                        setEditingItem(null);
                       }
                     }
                   }
@@ -73,7 +76,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem }) {
           />
         ) : (
           <span className="item-name" onClick={() => {
-            setIsEditing(true)
+            setEditingItem({listId, itemId: item.id});
             setDraftName(item.name)
           }}>
             {item.name}
@@ -90,7 +93,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem }) {
   )
 }
 
-function List({ listId, items, onToggle, removeItem, editItem }) {
+function List({ listId, items, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
 
   return (
     <ul>
@@ -102,6 +105,8 @@ function List({ listId, items, onToggle, removeItem, editItem }) {
           onToggle={() => onToggle(listId, item.id)}
           removeItem={removeItem}
           editItem={editItem}
+          editingItem={editingItem}
+          setEditingItem={setEditingItem}
         />
       ))}  
     </ul>
@@ -112,7 +117,7 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle, addItem, removeItem, editItem }) {
+function TitledList({list, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
@@ -122,7 +127,10 @@ function TitledList({list, onToggle, addItem, removeItem, editItem }) {
           items={list.items} 
           onToggle={onToggle}
           removeItem={removeItem}
-          editItem={editItem}/>
+          editItem={editItem}
+          editingItem={editingItem}
+          setEditingItem={setEditingItem}
+          />
       <input
           type="checkbox"
           checked={false}
@@ -143,7 +151,7 @@ function TitledList({list, onToggle, addItem, removeItem, editItem }) {
   )
 }
 
-function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem }) {
+function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
@@ -154,6 +162,8 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem }) {
             addItem={addItem}
             removeItem={removeItem}    
             editItem={editItem}
+            editingItem={editingItem}
+            setEditingItem={setEditingItem}
         />
       ))}
     </div>
@@ -162,6 +172,7 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem }) {
 
 export default function App() {
   const [lists, setLists] = useState(LISTS);
+  const [editingItem, setEditingItem] = useState(null);
 
   function toggleItem(listId, itemId) {
     setLists(prevLists =>
@@ -242,5 +253,7 @@ export default function App() {
             addItem={addItem} 
             removeItem={removeItem}
             editItem={editItem}
+            editingItem={editingItem}
+            setEditingItem={setEditingItem}
           />;
 }
