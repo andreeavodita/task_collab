@@ -63,11 +63,18 @@ function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, se
                   onChange={
                     (e) => setDraftName(e.target.value)
                   }
-                  onBlur={() => setEditingItem(null)}
+                  onBlur={() => {
+                    setDraftName(item.name);
+                    setEditingItem(null);
+                  }}
                   onKeyDown={
                     (e) => {
                       if (e.key === "Enter") {
                         editItem(listId, item.id, draftName);
+                        setEditingItem(null);
+                      }
+                      if (e.key === "Escape") {
+                        setDraftName(item.name);
                         setEditingItem(null);
                       }
                     }
