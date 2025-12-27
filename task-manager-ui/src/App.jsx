@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRef } from 'react'
 import { useEffect } from 'react'
+import { useReducer } from 'react'
 import trash from './assets/trashcan.svg';
 
 const ITEMS = [
@@ -26,14 +27,14 @@ const LISTS = [
   {id:2, title: "TO DOs", items: [ITEMS[3], ITEMS[4]]}
 ];
 
-function DeleteButton({ removeItem, itemId, listId}) {
+function DeleteButton({ listsDispatch, itemId, listId}) {
   return <button className='deleteitembutton'
-                 onClick={() => removeItem(listId, itemId)}>
+                 onClick={() => listsDispatch({type: "removeItem", listId: listId, itemId: itemId})}>
                  <img src={trash} alt="Trash" />
                  </button>
 }
 
-function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
+function ListItem({item, listId, onToggle, listsDispatch, editingItem, setEditingItem }) {
   const isChecked = item.status === "DONE";
   const [draftName, setDraftName] = useState(item.name);
 
@@ -70,7 +71,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, se
                   onKeyDown={
                     (e) => {
                       if (e.key === "Enter") {
-                        editItem(listId, item.id, draftName);
+                        listsDispatch({type: "editItem", listId: listId, itemId: item.id, name: draftName});
                         setEditingItem(null);
                       }
                       if (e.key === "Escape") {
@@ -92,7 +93,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, se
       }
 
       <DeleteButton 
-        removeItem={removeItem} 
+        listsDispatch={listsDispatch} 
         itemId={item.id} 
         listId={listId}
       />
@@ -100,7 +101,7 @@ function ListItem({item, listId, onToggle, removeItem, editItem, editingItem, se
   )
 }
 
-function List({ listId, items, onToggle, removeItem, editItem, editingItem, setEditingItem }) {
+function List({ listId, items, listsDispatch, editingItem, setEditingItem }) {
 
   return (
     <ul>
@@ -109,9 +110,8 @@ function List({ listId, items, onToggle, removeItem, editItem, editingItem, setE
           key={item.id} 
           item={item} 
           listId={listId}
-          onToggle={() => onToggle(listId, item.id)}
-          removeItem={removeItem}
-          editItem={editItem}
+          onToggle={() => listsDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
+          listsDispatch={listsDispatch}
           editingItem={editingItem}
           setEditingItem={setEditingItem}
         />
@@ -124,7 +124,7 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
+function TitledList({list, listsDispatch, editingItem, setEditingItem }) {
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
@@ -132,23 +132,20 @@ function TitledList({list, onToggle, addItem, removeItem, editItem, editingItem,
       <List 
           listId={list.id} 
           items={list.items} 
-          onToggle={onToggle}
-          removeItem={removeItem}
-          editItem={editItem}
+          listsDispatch={listsDispatch}
           editingItem={editingItem}
           setEditingItem={setEditingItem}
           />
       <input
           type="checkbox"
           checked={false}
-          onChange={onToggle}
       />
       <input
         type="text"
         onKeyDown={
           (e) => {
             if (e.key === "Enter") {
-              addItem(list.id, e.target.value);
+              listsDispatch({type: "addItem", listId: list.id, name: e.target.value});
               e.target.value = "";
             }
           }
@@ -158,17 +155,14 @@ function TitledList({list, onToggle, addItem, removeItem, editItem, editingItem,
   )
 }
 
-function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem, editingItem, setEditingItem }) {
+function ListCollabSpace({lists, listsDispatch, editingItem, setEditingItem }) {
   return (
     <div className="lists-grid">
       {lists.map(list => (
         <TitledList 
             key={list.id} 
             list={list} 
-            onToggle={onToggle} 
-            addItem={addItem}
-            removeItem={removeItem}    
-            editItem={editItem}
+            listsDispatch={listsDispatch}
             editingItem={editingItem}
             setEditingItem={setEditingItem}
         />
@@ -178,33 +172,33 @@ function ListCollabSpace({lists, onToggle, addItem, removeItem, editItem, editin
 }
 
 export default function App() {
-  const [lists, setLists] = useState(LISTS);
+  const [lists, listsDispatch] = useReducer(listsReducer, LISTS);
   const [editingItem, setEditingItem] = useState(null);
 
-  function toggleItem(listId, itemId) {
-    setLists(prevLists =>
-      prevLists.map(list =>
-        list.id !== listId
+  function listsReducer(state, action) {
+    switch(action.type) {
+      case "toggleItem": {
+        const {listId, itemId} = action;
+        return state.map(list =>
+          list.id !== listId
           ? list
           : {
-              ...list,
-              items: list.items.map(item =>
-                item.id !== itemId
-                  ? item
-                  : {
-                      ...item,
-                      status: item.status === "DONE" ? "ACTIVE" : "DONE"
-                    }
-              )
-            }
-      )
-    );
-  }
-
-  function addItem(listId, name) {
-    setLists(prevLists =>
-      prevLists.map(list =>
-        list.id !== listId
+            ...list,
+            items: list.items.map(item =>
+              item.id !== itemId
+              ? item
+              : {
+                ...item,
+                status: item.status === "DONE" ? "ACTIVE" : "DONE"
+              }
+            )
+          }
+        )
+      }
+      case "addItem": {
+        const {listId, name} = action;
+        return state.map(list =>
+          list.id !== listId
           ? list
           : {
             ...list,
@@ -216,28 +210,24 @@ export default function App() {
               }
             ]
           }
-      )
-    );
-  }
-
-  function removeItem(listId, itemId) {
-    setLists(prevLists =>
-      prevLists.map(list =>
-        list.id !== listId
+        )
+      }
+      case "removeItem": {
+        const {listId, itemId} = action;
+        return state.map(list =>
+          list.id !== listId
           ? list
           : {
             ...list,
             items: list.items.filter(
               item => item.id !== itemId)
           }
-      )
-    );
-  }
-
-  function editItem(listId, itemId, name) {
-    setLists(prevLists =>
-      prevLists.map(list =>
-        list.id !== listId
+        )
+      }
+      case "editItem": {
+        const {listId, itemId, name} = action;
+        return state.map(list =>
+          list.id !== listId
           ? list
           : {
               ...list,
@@ -250,16 +240,16 @@ export default function App() {
                     }
               )
             }
-      )
-    );
+        )
+      }
+      default: 
+        return state;
+    }
   }
 
   return <ListCollabSpace 
             lists={lists} 
-            onToggle={toggleItem} 
-            addItem={addItem} 
-            removeItem={removeItem}
-            editItem={editItem}
+            listsDispatch={listsDispatch} 
             editingItem={editingItem}
             setEditingItem={setEditingItem}
           />;
