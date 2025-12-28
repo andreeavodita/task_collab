@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { useRef } from 'react'
 import { useEffect } from 'react'
 import { useReducer } from 'react'
@@ -34,7 +34,14 @@ function DeleteButton({ listsDispatch, itemId, listId}) {
                  </button>
 }
 
-function ListItem({item, listId, onToggle, listsDispatch, editingItem, setEditingItem }) {
+function ListItem({item, listId, onToggle }) {
+
+  const {
+    listsDispatch,
+    editingItem,
+    setEditingItem
+  } = useContext(ListsContext);
+
   const isChecked = item.status === "DONE";
   const [draftName, setDraftName] = useState(item.name);
 
@@ -101,7 +108,9 @@ function ListItem({item, listId, onToggle, listsDispatch, editingItem, setEditin
   )
 }
 
-function List({ listId, items, listsDispatch, editingItem, setEditingItem }) {
+function List({ listId, items }) {
+
+  const { listsDispatch } = useContext(ListsContext);
 
   return (
     <ul>
@@ -111,9 +120,6 @@ function List({ listId, items, listsDispatch, editingItem, setEditingItem }) {
           item={item} 
           listId={listId}
           onToggle={() => listsDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
-          listsDispatch={listsDispatch}
-          editingItem={editingItem}
-          setEditingItem={setEditingItem}
         />
       ))}  
     </ul>
@@ -124,21 +130,22 @@ function ListTitle({title}) {
   return <h2 className='list-title'>{title}</h2>
 }
 
-function TitledList({list, listsDispatch, editingItem, setEditingItem }) {
+function TitledList({ list }) {
+
+  const { listsDispatch } = useContext(ListsContext);
+
   return (
     <div className='list-card'>
       <ListTitle title={list.title}/>
       <div className='list-divider'/>
       <List 
           listId={list.id} 
-          items={list.items} 
-          listsDispatch={listsDispatch}
-          editingItem={editingItem}
-          setEditingItem={setEditingItem}
+          items={list.items}
           />
       <input
           type="checkbox"
           checked={false}
+          readOnly={true}
       />
       <input
         type="text"
@@ -155,21 +162,23 @@ function TitledList({list, listsDispatch, editingItem, setEditingItem }) {
   )
 }
 
-function ListCollabSpace({lists, listsDispatch, editingItem, setEditingItem }) {
+function ListCollabSpace({ }) {
+
+  const { lists } = useContext(ListsContext)
+
   return (
     <div className="lists-grid">
       {lists.map(list => (
         <TitledList 
             key={list.id} 
-            list={list} 
-            listsDispatch={listsDispatch}
-            editingItem={editingItem}
-            setEditingItem={setEditingItem}
+            list={list}
         />
       ))}
     </div>
   )
 }
+
+const ListsContext = createContext(null);
 
 export default function App() {
   const [lists, listsDispatch] = useReducer(listsReducer, LISTS);
@@ -247,10 +256,12 @@ export default function App() {
     }
   }
 
-  return <ListCollabSpace 
-            lists={lists} 
-            listsDispatch={listsDispatch} 
-            editingItem={editingItem}
-            setEditingItem={setEditingItem}
-          />;
+  return <ListsContext.Provider value={{
+    lists,
+    listsDispatch,
+    editingItem,
+    setEditingItem,
+  }}>
+    <ListCollabSpace />
+  </ListsContext.Provider>;
 }
