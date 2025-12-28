@@ -27,6 +27,8 @@ const LISTS = [
   {id:2, title: "TO DOs", items: [ITEMS[3], ITEMS[4]]}
 ];
 
+const ListsContext = createContext(null);
+
 function DeleteButton({ listsDispatch, itemId, listId}) {
   return <button className='deleteitembutton'
                  onClick={() => listsDispatch({type: "removeItem", listId: listId, itemId: itemId})}>
@@ -178,78 +180,88 @@ function ListCollabSpace({ }) {
   )
 }
 
-const ListsContext = createContext(null);
-
 export default function App() {
   const [lists, listsDispatch] = useReducer(listsReducer, LISTS);
   const [editingItem, setEditingItem] = useState(null);
 
+  function toggleItem(state, {listId, itemId}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: list.items.map(item =>
+          item.id !== itemId
+          ? item
+          : {
+            ...item,
+            status: item.status === "DONE" ? "ACTIVE" : "DONE"
+          }
+        )
+      }
+    );
+  }
+
+  function addItem(state, {listId, name}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: [...list.items, 
+          {
+            id: list.items.length !== 0 ? (list.items[list.items.length - 1].id + 1) : 1,
+            name: name,
+            status: "ACTIVE"
+          }
+        ]
+      }
+    );
+  }
+
+  function removeItem(state, {listId, itemId}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: list.items.filter(
+          item => item.id !== itemId)
+      }
+    );
+  }
+
+  function editItem(state, {listId, itemId, name}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+          ...list,
+          items: list.items.map(item =>
+            item.id !== itemId
+              ? item
+              : {
+                  ...item,
+                  name: name
+                }
+          )
+        }
+    );
+  }
+
   function listsReducer(state, action) {
     switch(action.type) {
       case "toggleItem": {
-        const {listId, itemId} = action;
-        return state.map(list =>
-          list.id !== listId
-          ? list
-          : {
-            ...list,
-            items: list.items.map(item =>
-              item.id !== itemId
-              ? item
-              : {
-                ...item,
-                status: item.status === "DONE" ? "ACTIVE" : "DONE"
-              }
-            )
-          }
-        )
+        return toggleItem(state, action);
       }
       case "addItem": {
-        const {listId, name} = action;
-        return state.map(list =>
-          list.id !== listId
-          ? list
-          : {
-            ...list,
-            items: [...list.items, 
-              {
-                id: list.items.length !== 0 ? (list.items[list.items.length - 1].id + 1) : 1,
-                name: name,
-                status: "ACTIVE"
-              }
-            ]
-          }
-        )
+        return addItem(state, action); 
       }
       case "removeItem": {
-        const {listId, itemId} = action;
-        return state.map(list =>
-          list.id !== listId
-          ? list
-          : {
-            ...list,
-            items: list.items.filter(
-              item => item.id !== itemId)
-          }
-        )
+        return removeItem(state, action);        
       }
       case "editItem": {
-        const {listId, itemId, name} = action;
-        return state.map(list =>
-          list.id !== listId
-          ? list
-          : {
-              ...list,
-              items: list.items.map(item =>
-                item.id !== itemId
-                  ? item
-                  : {
-                      ...item,
-                      name: name
-                    }
-              )
-            }
-        )
+        return editItem(state, action);
       }
       default: 
         return state;
