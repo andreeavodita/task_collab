@@ -29,9 +29,9 @@ const LISTS = [
 
 const ListsContext = createContext(null);
 
-function DeleteButton({ listsDispatch, itemId, listId}) {
+function DeleteButton({ historyDispatch, itemId, listId}) {
   return <button className='deleteitembutton'
-                 onClick={() => listsDispatch({type: "removeItem", listId: listId, itemId: itemId})}>
+                 onClick={() => historyDispatch({type: "removeItem", listId: listId, itemId: itemId})}>
                  <img src={trash} alt="Trash" />
                  </button>
 }
@@ -39,7 +39,7 @@ function DeleteButton({ listsDispatch, itemId, listId}) {
 function ListItem({item, listId, onToggle }) {
 
   const {
-    listsDispatch,
+    historyDispatch,
     editingItem,
     setEditingItem
   } = useContext(ListsContext);
@@ -80,7 +80,7 @@ function ListItem({item, listId, onToggle }) {
                   onKeyDown={
                     (e) => {
                       if (e.key === "Enter") {
-                        listsDispatch({type: "editItem", listId: listId, itemId: item.id, name: draftName});
+                        historyDispatch({type: "editItem", listId: listId, itemId: item.id, name: draftName});
                         setEditingItem(null);
                       }
                       if (e.key === "Escape") {
@@ -102,7 +102,7 @@ function ListItem({item, listId, onToggle }) {
       }
 
       <DeleteButton 
-        listsDispatch={listsDispatch} 
+        historyDispatch={historyDispatch} 
         itemId={item.id} 
         listId={listId}
       />
@@ -112,7 +112,7 @@ function ListItem({item, listId, onToggle }) {
 
 function List({ listId, items }) {
 
-  const { listsDispatch } = useContext(ListsContext);
+  const { historyDispatch } = useContext(ListsContext);
 
   return (
     <ul>
@@ -121,7 +121,7 @@ function List({ listId, items }) {
           key={item.id} 
           item={item} 
           listId={listId}
-          onToggle={() => listsDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
+          onToggle={() => historyDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
         />
       ))}  
     </ul>
@@ -134,7 +134,7 @@ function ListTitle({title}) {
 
 function TitledList({ list }) {
 
-  const { listsDispatch } = useContext(ListsContext);
+  const { historyDispatch } = useContext(ListsContext);
 
   return (
     <div className='list-card'>
@@ -154,7 +154,7 @@ function TitledList({ list }) {
         onKeyDown={
           (e) => {
             if (e.key === "Enter") {
-              listsDispatch({type: "addItem", listId: list.id, name: e.target.value});
+              historyDispatch({type: "addItem", listId: list.id, name: e.target.value});
               e.target.value = "";
             }
           }
@@ -166,11 +166,11 @@ function TitledList({ list }) {
 
 function ListCollabSpace({ }) {
 
-  const { lists } = useContext(ListsContext)
+  const { present } = useContext(ListsContext)
 
   return (
     <div className="lists-grid">
-      {lists.map(list => (
+      {present.map(list => (
         <TitledList 
             key={list.id} 
             list={list}
@@ -181,8 +181,8 @@ function ListCollabSpace({ }) {
 }
 
 export default function App() {
-  const [lists, listsDispatch] = useReducer(listsReducer, LISTS);
   const [editingItem, setEditingItem] = useState(null);
+  const [history, historyDispatch] = useReducer(historyReducer, {past: [], present: LISTS, future: []});
 
   function toggleItem(state, {listId, itemId}) {
     return state.map(list =>
@@ -268,9 +268,44 @@ export default function App() {
     }
   }
 
+  function historyReducer(state, action) {
+    const { past, present, future } = state;
+    
+    switch(action.type) {
+      case "undo": {
+        if (past.length === 0) {
+          return state;
+        }
+        return {
+          past: [...past.slice(0, past.length - 1)],
+          present: past[past.length - 1],
+          future: [present, ...future]
+        }
+      }
+      case "redo": {
+        if (future.length === 0) {
+          return state;
+        }
+        return {
+          past: [...past, present],
+          present: future[0],
+          future: [...future.slice(1, future.length)]
+        }
+      }
+      default:
+        return {
+          past: [...past, present],
+          present: listsReducer(present, action),
+          future: []
+        }
+    }
+  }
+
+  const { present } = history;
+
   return <ListsContext.Provider value={{
-    lists,
-    listsDispatch,
+    present,
+    historyDispatch,
     editingItem,
     setEditingItem,
   }}>
