@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import { useRef } from 'react'
 import { useEffect } from 'react'
 import { useReducer } from 'react'
+import useKeyboardShortcut from './keyboard-shortcut.jsx'
 import trash from './assets/trashcan.svg';
 
 const ITEMS = [
@@ -300,6 +301,16 @@ export default function App() {
         }
     }
   }
+
+  useKeyboardShortcut(
+    { key: "z", ctrl: true },
+    () => historyDispatch({ type: "undo" })
+  );
+
+  useKeyboardShortcut(
+    { key: "z", ctrl: true, shift: true },
+    () => historyDispatch({ type: "redo" })
+  );
 
   const { present } = history;
 
