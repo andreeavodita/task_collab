@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useReducer } from 'react'
 import useKeyboardShortcut from './keyboard-shortcut.jsx'
 import trash from './assets/trashcan.svg';
+import { ITEM_STATUS } from './item-status.jsx'
 
 const ITEMS = [
   {id: 1, name: "Milk", status: "ACTIVE"},
@@ -32,7 +33,7 @@ const ListsContext = createContext(null);
 
 function DeleteButton({ historyDispatch, itemId, listId}) {
   return <button className='deleteitembutton'
-                 onClick={() => historyDispatch({type: "removeItem", listId: listId, itemId: itemId})}>
+                 onClick={() => historyDispatch({type: "softDeleteItem", listId: listId, itemId: itemId})}>
                  <img src={trash} alt="Trash" />
                  </button>
 }
@@ -45,7 +46,7 @@ function ListItem({item, listId, onToggle }) {
     setEditingItem
   } = useContext(ListsContext);
 
-  const isChecked = item.status === "DONE";
+  const isChecked = item.status === ITEM_STATUS.DONE;
   const [draftName, setDraftName] = useState(item.name);
 
   const isEditing = editingItem?.listId === listId && 
@@ -117,7 +118,8 @@ function List({ listId, items }) {
 
   return (
     <ul>
-      {items.map(item => (
+      {items.filter(item => item.status !== ITEM_STATUS.REMOVED)
+      .map(item => (
         <ListItem 
           key={item.id} 
           item={item} 
@@ -196,7 +198,7 @@ export default function App() {
           ? item
           : {
             ...item,
-            status: item.status === "DONE" ? "ACTIVE" : "DONE"
+            status: item.status === ITEM_STATUS.DONE ? ITEM_STATUS.ACTIVE : ITEM_STATUS.DONE
           }
         )
       }
@@ -213,21 +215,27 @@ export default function App() {
           {
             id: list.items.length !== 0 ? (list.items[list.items.length - 1].id + 1) : 1,
             name: name,
-            status: "ACTIVE"
+            status: ITEM_STATUS.ACTIVE
           }
         ]
       }
     );
   }
 
-  function removeItem(state, {listId, itemId}) {
+  function softDeleteItem(state, {listId, itemId}) {
     return state.map(list =>
       list.id !== listId
       ? list
       : {
         ...list,
-        items: list.items.filter(
-          item => item.id !== itemId)
+        items: list.items.map(item =>
+          item.id !== itemId
+          ? item
+          : {
+            ...item,
+            status: ITEM_STATUS.REMOVED
+          }
+        )
       }
     );
   }
@@ -258,8 +266,8 @@ export default function App() {
       case "addItem": {
         return addItem(state, action); 
       }
-      case "removeItem": {
-        return removeItem(state, action);        
+      case "softDeleteItem": {
+        return softDeleteItem(state, action);        
       }
       case "editItem": {
         return editItem(state, action);
