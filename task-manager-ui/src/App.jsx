@@ -156,7 +156,18 @@ function List({ listId, items }) {
 
   return (
     <ul>
-      {items.filter(item => item.status !== ITEM_STATUS.REMOVED)
+      {items.filter(item => item.status !== ITEM_STATUS.REMOVED
+        && item.status !== ITEM_STATUS.DONE)
+      .map(item => (
+        <ListItem 
+          key={item.id} 
+          item={item} 
+          listId={listId}
+          onToggle={() => historyDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
+        />
+      ))}  
+      {items.filter(item => item.status !== ITEM_STATUS.REMOVED
+        && item.status !== ITEM_STATUS.ACTIVE)
       .map(item => (
         <ListItem 
           key={item.id} 
@@ -205,7 +216,7 @@ function TitledList({ list }) {
   )
 }
 
-function RecentlyRemovedList({ lists }) {
+function RecentlyRemovedView({ lists }) {
   return (
     <div className='recently-removed-title-list'>
       <ListTitle title={"Recently Removed"}/>
@@ -238,7 +249,7 @@ function ListCollabSpace({ }) {
             list={list}
         />
       ))}
-      <RecentlyRemovedList
+      <RecentlyRemovedView
         key={"recently-removed"}
         lists={present}
       />
@@ -261,7 +272,8 @@ export default function App() {
           ? item
           : {
             ...item,
-            status: item.status === ITEM_STATUS.DONE ? ITEM_STATUS.ACTIVE : ITEM_STATUS.DONE
+            status: item.status === ITEM_STATUS.DONE ? ITEM_STATUS.ACTIVE : ITEM_STATUS.DONE,
+            completedAt: item.status === ITEM_STATUS.DONE ? Date.now() : null
           }
         )
       }
@@ -311,7 +323,8 @@ export default function App() {
           ? item
           : {
             ...item,
-            status: ITEM_STATUS.REMOVED
+            status: ITEM_STATUS.REMOVED,
+            removedAt: Date.now()
           }
         )
       }
