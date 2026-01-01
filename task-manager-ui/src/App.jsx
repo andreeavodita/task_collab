@@ -12,11 +12,12 @@ const ITEMS = [
   {id: 2, name: "Bread", status: ITEM_STATUS.DONE},
   {id: 3, name: "Pumpkin", status: ITEM_STATUS.ACTIVE},
   {id: 4, name: "Clean the kitchen", status: ITEM_STATUS.ACTIVE},
-  {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE}
+  {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE},
+  {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED}
 ]
 
 const LISTS = [
-  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
+  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2], ITEMS[5]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
@@ -156,8 +157,7 @@ function List({ listId, items }) {
 
   return (
     <ul>
-      {items.filter(item => item.status !== ITEM_STATUS.REMOVED
-        && item.status !== ITEM_STATUS.DONE)
+      {items.filter(item => item.status === ITEM_STATUS.ACTIVE)
       .map(item => (
         <ListItem 
           key={item.id} 
@@ -166,8 +166,7 @@ function List({ listId, items }) {
           onToggle={() => historyDispatch({type: "toggleItem", listId: listId, itemId: item.id})}
         />
       ))}  
-      {items.filter(item => item.status !== ITEM_STATUS.REMOVED
-        && item.status !== ITEM_STATUS.ACTIVE)
+      {items.filter(item => item.status === ITEM_STATUS.DONE)
       .map(item => (
         <ListItem 
           key={item.id} 
@@ -349,6 +348,25 @@ export default function App() {
     );
   }
 
+  function archiveItem(state, {listId, itemId}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: list.items.map(item =>
+          item.id !== itemId
+          ? item
+          : {
+            ...item,
+            status: ITEM_STATUS.ARCHIVED,
+            archivedAt: Date.now()
+          }
+        )
+      }
+    );
+  }
+
   function listsReducer(state, action) {
     switch(action.type) {
       case "toggleItem": {
@@ -365,6 +383,9 @@ export default function App() {
       }
       case "restoreItem": {
         return restoreItem(state, action);
+      }
+      case "archiveItem": {
+        return archiveItem(state, action);
       }
       default: 
         return state;
