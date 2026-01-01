@@ -168,3 +168,16 @@ li.list-item-done span {
 .deleteitembutton:hover {
   transform: scale(1.1);
 }
+
+.restoreitembutton img {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.restoreitembutton:hover img {
+  opacity: 0.7;
+}
+
+.restoreitembutton:hover {
+  transform: scale(1.1);
+}
