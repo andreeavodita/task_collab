@@ -4,14 +4,15 @@ import { useEffect } from 'react'
 import { useReducer } from 'react'
 import useKeyboardShortcut from './keyboard-shortcut.jsx'
 import trash from './assets/trashcan.svg';
+import restorearrow from "./assets/restore-arrow.svg"
 import { ITEM_STATUS } from './item-status.jsx'
 
 const ITEMS = [
-  {id: 1, name: "Milk", status: "ACTIVE"},
-  {id: 2, name: "Bread", status: "DONE"},
-  {id: 3, name: "Pumpkin", status: "ACTIVE"},
-  {id: 4, name: "Clean the kitchen", status: "ACTIVE"},
-  {id: 5, name: "Wash clothes", status: "DONE"}
+  {id: 1, name: "Milk", status: ITEM_STATUS.ACTIVE},
+  {id: 2, name: "Bread", status: ITEM_STATUS.DONE},
+  {id: 3, name: "Pumpkin", status: ITEM_STATUS.ACTIVE},
+  {id: 4, name: "Clean the kitchen", status: ITEM_STATUS.ACTIVE},
+  {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE}
 ]
 
 const LISTS = [
@@ -31,12 +32,28 @@ const LISTS = [
 
 const ListsContext = createContext(null);
 
-function DeleteButton({ historyDispatch, itemId, listId}) {
+function DeleteButton({ historyDispatch, itemId, listId }) {
   return <button className='deleteitembutton'
                  onClick={() => historyDispatch({type: "softDeleteItem", listId: listId, itemId: itemId})}>
                  <img src={trash} alt="Trash" />
                  </button>
 }
+
+function RestoreButton({ historyDispatch, listId, itemId }) {
+  return <button className='restoreitembutton'
+          onClick={() => historyDispatch({type: "restoreItem", listId: listId, itemId: itemId})}>
+            <img src={restorearrow} alt="Restore Arrow"/>
+          </button>
+
+}
+
+{/*
+  Later I will have more than one list item.
+  The "recently removed" one should be special:
+  - has a restore button
+  - does not edit inline, but shows a confirmation popup
+  - delete button performs hard delete
+*/}
 
 function ListItem({item, listId, onToggle }) {
 
@@ -47,6 +64,7 @@ function ListItem({item, listId, onToggle }) {
   } = useContext(ListsContext);
 
   const isChecked = item.status === ITEM_STATUS.DONE;
+  const isRemoved = item.status === ITEM_STATUS.REMOVED;
   const [draftName, setDraftName] = useState(item.name);
 
   const isEditing = editingItem?.listId === listId && 
@@ -62,11 +80,21 @@ function ListItem({item, listId, onToggle }) {
 
   return (
     <li className={`list-item-${isChecked ? "done" : ""}`}>
-      <input
-        type="checkbox"
-        checked={isChecked}
-        onChange={onToggle}
-      />
+
+      {
+        isRemoved ? 
+          <input
+            type="checkbox"
+            checked={isChecked}
+            readOnly={true}
+          />
+          :
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={onToggle}
+          />
+      }
 
       {
         isEditing ? (
@@ -101,6 +129,16 @@ function ListItem({item, listId, onToggle }) {
             {item.name}
           </span>
         )
+      }
+
+      {
+        isRemoved ?
+          <RestoreButton
+            historyDispatch={historyDispatch} 
+            itemId={item.id} 
+            listId={listId}
+          />
+          : null
       }
 
       <DeleteButton 
@@ -167,6 +205,27 @@ function TitledList({ list }) {
   )
 }
 
+function RecentlyRemovedList({ lists }) {
+  return (
+    <div className='recently-removed-title-list'>
+      <ListTitle title={"Recently Removed"}/>
+      <div className='list-divider'/>
+      <ul>
+        {lists.map(list =>
+          list.items
+          .filter(item => item.status === ITEM_STATUS.REMOVED)
+          .map(item => (
+            <ListItem 
+              key={item.id} 
+              item={item} 
+              listId={list.id}
+            />
+          )))}  
+      </ul>
+    </div>
+  );
+}
+
 function ListCollabSpace({ }) {
 
   const { present } = useContext(ListsContext)
@@ -179,6 +238,10 @@ function ListCollabSpace({ }) {
             list={list}
         />
       ))}
+      <RecentlyRemovedList
+        key={"recently-removed"}
+        lists={present}
+      />
     </div>
   )
 }
@@ -218,6 +281,21 @@ export default function App() {
             status: ITEM_STATUS.ACTIVE
           }
         ]
+      }
+    );
+  }
+
+  function restoreItem(state, {listId, itemId}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: list.items.map(item =>
+          item.id !== itemId
+            ? item
+            : { ...item, status: ITEM_STATUS.ACTIVE }
+        )
       }
     );
   }
@@ -271,6 +349,9 @@ export default function App() {
       }
       case "editItem": {
         return editItem(state, action);
+      }
+      case "restoreItem": {
+        return restoreItem(state, action);
       }
       default: 
         return state;
