@@ -16,11 +16,13 @@ const ITEMS = [
   {id: 3, name: "Pumpkin", status: ITEM_STATUS.ACTIVE},
   {id: 4, name: "Clean the kitchen", status: ITEM_STATUS.ACTIVE},
   {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE, completedAt: Date.now() - 8 * DAY},
-  {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED}
+  {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED},
+  {id: 7, name: "Apples", status: ITEM_STATUS.REMOVED, removedAt: Date.now() - 31 * DAY},
+  {id: 8, name: "Pears", status: ITEM_STATUS.REMOVED, removedAt: Date.now() - 20 * DAY},
 ]
 
 const LISTS = [
-  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2], ITEMS[5]]},
+  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2], ITEMS[5], ITEMS[6], ITEMS[7]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
@@ -370,6 +372,19 @@ export default function App() {
     );
   }
 
+  function hardDeleteItems(state, {}) {
+    return state.map(list => ({
+      ...list,
+      items: list.items.filter(item =>
+        !(
+          item.status === ITEM_STATUS.REMOVED &&
+          item.removedAt &&
+          Date.now() - item.removedAt > 30 * DAY
+        )
+      )
+    }));
+  }
+
   function listsReducer(state, action) {
     switch(action.type) {
       case "toggleItem": {
@@ -389,6 +404,9 @@ export default function App() {
       }
       case "archiveItem": {
         return archiveItem(state, action);
+      }
+      case "hardDeleteItems": {
+        return hardDeleteItems(state, action);
       }
       default: 
         return state;
@@ -453,6 +471,13 @@ export default function App() {
           }
         })
       })
+    }, 60_000)
+    return () => clearInterval(interval);
+  }, [present, historyDispatch]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      historyDispatch({type: "hardDeleteItems"});
     }, 60_000)
     return () => clearInterval(interval);
   }, [present, historyDispatch]);
