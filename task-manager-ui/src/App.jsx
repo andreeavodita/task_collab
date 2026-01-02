@@ -16,11 +16,13 @@ const ITEMS = [
   {id: 3, name: "Pumpkin", status: ITEM_STATUS.ACTIVE},
   {id: 4, name: "Clean the kitchen", status: ITEM_STATUS.ACTIVE},
   {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE, completedAt: Date.now() - 8 * DAY},
-  {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED}
+  {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED},
+  {id: 7, name: "Apples", status: ITEM_STATUS.REMOVED, removedAt: Date.now() - 31 * DAY},
+  {id: 8, name: "Pears", status: ITEM_STATUS.REMOVED, removedAt: Date.now() - 20 * DAY},
 ]
 
 const LISTS = [
-  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2], ITEMS[5]]},
+  {id: 1, title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2], ITEMS[5], ITEMS[6], ITEMS[7]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
   // {title: "Groceries", items: [ITEMS[0], ITEMS[1], ITEMS[2]]},
@@ -36,9 +38,17 @@ const LISTS = [
 
 const ListsContext = createContext(null);
 
-function DeleteButton({ historyDispatch, itemId, listId }) {
+function DeleteButton({ historyDispatch, item, listId }) {
   return <button className='deleteitembutton'
-                 onClick={() => historyDispatch({type: "softDeleteItem", listId: listId, itemId: itemId})}>
+                 onClick={item.status === ITEM_STATUS.REMOVED ? 
+                  () => {
+                    if (window.confirm("This item will be permanently deleted."))
+                      historyDispatch({type: "hardDeleteItem", listId: listId, itemId: item.id})
+                  } 
+                  :
+                  () =>
+                    historyDispatch({type: "softDeleteItem", listId: listId, itemId: item.id})
+                }>
                  <img src={trash} alt="Trash" />
                  </button>
 }
@@ -147,7 +157,7 @@ function ListItem({item, listId, onToggle }) {
 
       <DeleteButton 
         historyDispatch={historyDispatch} 
-        itemId={item.id} 
+        item={item} 
         listId={listId}
       />
     </li>
@@ -351,23 +361,50 @@ export default function App() {
     );
   }
 
-  function archiveItem(state, {listId, itemId}) {
+  function archiveItems(state, {}) {
+    return state.map(list => (
+      {
+        ...list,
+        items: list.items.map(item => {
+          if (
+            item.status === ITEM_STATUS.DONE &&
+            item.completedAt &&
+            Date.now() - item.completedAt > SEVEN_DAYS
+          ) {
+            return {
+              ...item,
+              status: ITEM_STATUS.ARCHIVED,
+              archivedAt: Date.now()
+            };
+          }
+          return item;
+        })
+      }
+    ));
+  }
+
+  function hardDeleteItem(state, {listId, itemId}) {
     return state.map(list =>
       list.id !== listId
       ? list
       : {
         ...list,
-        items: list.items.map(item =>
-          item.id !== itemId
-          ? item
-          : {
-            ...item,
-            status: ITEM_STATUS.ARCHIVED,
-            archivedAt: Date.now()
-          }
+        items: list.items.filter(
+          item => item.id !== itemId)
+      })
+  }
+
+  function hardDeleteItems(state, {}) {
+    return state.map(list => ({
+      ...list,
+      items: list.items.filter(item =>
+        !(
+          item.status === ITEM_STATUS.REMOVED &&
+          item.removedAt &&
+          Date.now() - item.removedAt > 30 * DAY
         )
-      }
-    );
+      )
+    }));
   }
 
   function listsReducer(state, action) {
@@ -387,8 +424,14 @@ export default function App() {
       case "restoreItem": {
         return restoreItem(state, action);
       }
-      case "archiveItem": {
-        return archiveItem(state, action);
+      case "archiveItems": {
+        return archiveItems(state, action);
+      }
+      case "hardDeleteItems": {
+        return hardDeleteItems(state, action);
+      }
+      case "hardDeleteItem": {
+        return hardDeleteItem(state, action);
       }
       default: 
         return state;
@@ -442,17 +485,8 @@ export default function App() {
   
   useEffect(() => {
     const interval = setInterval(() => {
-      present.forEach(list => {
-        list.items.forEach(item => {
-          if (
-            item.status === ITEM_STATUS.DONE &&
-            item.completedAt &&
-            Date.now() - item.completedAt > SEVEN_DAYS
-          ) {
-            historyDispatch({type: "archiveItem", listId: list.id, itemId: item.id})
-          }
-        })
-      })
+      historyDispatch({type: "hardDeleteItems"});
+      historyDispatch({type: "archiveItems"});
     }, 60_000)
     return () => clearInterval(interval);
   }, [present, historyDispatch]);
