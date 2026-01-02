@@ -7,12 +7,15 @@ import trash from './assets/trashcan.svg';
 import restorearrow from "./assets/restore-arrow.svg"
 import { ITEM_STATUS } from './item-status.jsx'
 
+const DAY = 60_000 * 60 * 24;
+const SEVEN_DAYS = 60_000 * 60 * 24 * 7;
+
 const ITEMS = [
   {id: 1, name: "Milk", status: ITEM_STATUS.ACTIVE},
-  {id: 2, name: "Bread", status: ITEM_STATUS.DONE},
+  {id: 2, name: "Bread", status: ITEM_STATUS.DONE, completedAt: Date.now() - 2 * DAY},
   {id: 3, name: "Pumpkin", status: ITEM_STATUS.ACTIVE},
   {id: 4, name: "Clean the kitchen", status: ITEM_STATUS.ACTIVE},
-  {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE},
+  {id: 5, name: "Wash clothes", status: ITEM_STATUS.DONE, completedAt: Date.now() - 8 * DAY},
   {id: 6, name: "Bananas", status: ITEM_STATUS.ARCHIVED}
 ]
 
@@ -272,7 +275,7 @@ export default function App() {
           : {
             ...item,
             status: item.status === ITEM_STATUS.DONE ? ITEM_STATUS.ACTIVE : ITEM_STATUS.DONE,
-            completedAt: item.status === ITEM_STATUS.DONE ? Date.now() : null
+            completedAt: item.status === ITEM_STATUS.ACTIVE ? Date.now() : null
           }
         )
       }
@@ -436,6 +439,23 @@ export default function App() {
   );
 
   const { present } = history;
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      present.forEach(list => {
+        list.items.forEach(item => {
+          if (
+            item.status === ITEM_STATUS.DONE &&
+            item.completedAt &&
+            Date.now() - item.completedAt > SEVEN_DAYS
+          ) {
+            historyDispatch({type: "archiveItem", listId: list.id, itemId: item.id})
+          }
+        })
+      })
+    }, 60_000)
+    return () => clearInterval(interval);
+  }, [present, historyDispatch]);
 
   return <ListsContext.Provider value={{
     present,
