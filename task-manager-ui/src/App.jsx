@@ -269,6 +269,12 @@ function ListCollabSpace({ }) {
   )
 }
 
+const PERMANENT_ACTIONS = new Set([
+  "archiveItems",
+  "hardDeleteItems",
+  "hardDeleteItem"
+])
+
 export default function App() {
   const [editingItem, setEditingItem] = useState(null);
   const [history, historyDispatch] = useReducer(historyReducer, {past: [], present: LISTS, future: []});
@@ -463,9 +469,19 @@ export default function App() {
         }
       }
       default:
+        const nextPresent = listsReducer(present, action);
+
+        if (PERMANENT_ACTIONS.has(action.type)) {
+          return {
+            past: past,
+            present: nextPresent,
+            future: []
+          }
+        }
+
         return {
           past: [...past, present],
-          present: listsReducer(present, action),
+          present: nextPresent,
           future: []
         }
     }
