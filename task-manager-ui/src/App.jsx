@@ -41,9 +41,13 @@ const ListsContext = createContext(null);
 function DeleteButton({ historyDispatch, item, listId }) {
   return <button className='deleteitembutton'
                  onClick={item.status === ITEM_STATUS.REMOVED ? 
-                  () => historyDispatch({type: "hardDeleteItem", listId: listId, itemId: item.id})
+                  () => {
+                    if (window.confirm("This item will be permanently deleted."))
+                      historyDispatch({type: "hardDeleteItem", listId: listId, itemId: item.id})
+                  } 
                   :
-                  () => historyDispatch({type: "softDeleteItem", listId: listId, itemId: item.id})
+                  () =>
+                    historyDispatch({type: "softDeleteItem", listId: listId, itemId: item.id})
                 }>
                  <img src={trash} alt="Trash" />
                  </button>
@@ -357,23 +361,26 @@ export default function App() {
     );
   }
 
-  function archiveItem(state, {listId, itemId}) {
-    return state.map(list =>
-      list.id !== listId
-      ? list
-      : {
+  function archiveItems(state, {}) {
+    return state.map(list => (
+      {
         ...list,
-        items: list.items.map(item =>
-          item.id !== itemId
-          ? item
-          : {
-            ...item,
-            status: ITEM_STATUS.ARCHIVED,
-            archivedAt: Date.now()
+        items: list.items.map(item => {
+          if (
+            item.status === ITEM_STATUS.DONE &&
+            item.completedAt &&
+            Date.now() - item.completedAt > SEVEN_DAYS
+          ) {
+            return {
+              ...item,
+              status: ITEM_STATUS.ARCHIVED,
+              archivedAt: Date.now()
+            };
           }
-        )
+          return item;
+        })
       }
-    );
+    ));
   }
 
   function hardDeleteItem(state, {listId, itemId}) {
@@ -417,8 +424,8 @@ export default function App() {
       case "restoreItem": {
         return restoreItem(state, action);
       }
-      case "archiveItem": {
-        return archiveItem(state, action);
+      case "archiveItems": {
+        return archiveItems(state, action);
       }
       case "hardDeleteItems": {
         return hardDeleteItems(state, action);
@@ -478,24 +485,8 @@ export default function App() {
   
   useEffect(() => {
     const interval = setInterval(() => {
-      present.forEach(list => {
-        list.items.forEach(item => {
-          if (
-            item.status === ITEM_STATUS.DONE &&
-            item.completedAt &&
-            Date.now() - item.completedAt > SEVEN_DAYS
-          ) {
-            historyDispatch({type: "archiveItem", listId: list.id, itemId: item.id})
-          }
-        })
-      })
-    }, 60_000)
-    return () => clearInterval(interval);
-  }, [present, historyDispatch]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
       historyDispatch({type: "hardDeleteItems"});
+      historyDispatch({type: "archiveItems"});
     }, 60_000)
     return () => clearInterval(interval);
   }, [present, historyDispatch]);
