@@ -38,9 +38,13 @@ const LISTS = [
 
 const ListsContext = createContext(null);
 
-function DeleteButton({ historyDispatch, itemId, listId }) {
+function DeleteButton({ historyDispatch, item, listId }) {
   return <button className='deleteitembutton'
-                 onClick={() => historyDispatch({type: "softDeleteItem", listId: listId, itemId: itemId})}>
+                 onClick={item.status === ITEM_STATUS.REMOVED ? 
+                  () => historyDispatch({type: "hardDeleteItem", listId: listId, itemId: item.id})
+                  :
+                  () => historyDispatch({type: "softDeleteItem", listId: listId, itemId: item.id})
+                }>
                  <img src={trash} alt="Trash" />
                  </button>
 }
@@ -149,7 +153,7 @@ function ListItem({item, listId, onToggle }) {
 
       <DeleteButton 
         historyDispatch={historyDispatch} 
-        itemId={item.id} 
+        item={item} 
         listId={listId}
       />
     </li>
@@ -372,6 +376,17 @@ export default function App() {
     );
   }
 
+  function hardDeleteItem(state, {listId, itemId}) {
+    return state.map(list =>
+      list.id !== listId
+      ? list
+      : {
+        ...list,
+        items: list.items.filter(
+          item => item.id !== itemId)
+      })
+  }
+
   function hardDeleteItems(state, {}) {
     return state.map(list => ({
       ...list,
@@ -407,6 +422,9 @@ export default function App() {
       }
       case "hardDeleteItems": {
         return hardDeleteItems(state, action);
+      }
+      case "hardDeleteItem": {
+        return hardDeleteItem(state, action);
       }
       default: 
         return state;
