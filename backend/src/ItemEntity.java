@@ -25,12 +25,27 @@ public class ItemEntity {
 
 
     public ItemEntity(final String name) {
+        this.id = UUID.randomUUID();
         this.name = name;
         this.status = ItemStatus.ACTIVE;
         this.createdAt = Instant.now();
         this.completedAt = null;
         this.removedAt = null;
         this.archivedAt = null;
+    }
+
+    protected ItemEntity() {}
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ItemStatus getStatus() {
+        return status;
     }
 
     public void markDone() {
