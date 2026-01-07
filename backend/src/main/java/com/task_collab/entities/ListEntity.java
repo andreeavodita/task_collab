@@ -26,6 +26,7 @@ public class ListEntity {
 
     private Instant createdAt;
 
+    @Transient
     private final List<AuditEntry> auditLog = new ArrayList<>();
 
     public ListEntity(final String title) {

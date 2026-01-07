@@ -1,17 +1,10 @@
 package com.task_collab.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
 public class AuditEntry {
 
-    @Id
-    @GeneratedValue
     private UUID id;
     private Instant occurredAt;
     private String action;
