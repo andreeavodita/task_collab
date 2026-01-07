@@ -1,20 +1,27 @@
 package com.task_collab.entities;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
 import java.time.Instant;
 import java.util.UUID;
 
-enum ItemStatus {
-    ACTIVE,
-    DONE,
-    REMOVED,
-    ARCHIVED
-}
-
+@Entity
 public class ItemEntity {
+
+    @Id
+    @GeneratedValue
     private UUID id;
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
     private ItemStatus status;
 
     private Instant createdAt;
@@ -25,9 +32,12 @@ public class ItemEntity {
 
     private Instant archivedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "list_id", nullable = false)
+    private ListEntity list;
+
 
     public ItemEntity(final String name) {
-        this.id = UUID.randomUUID();
         this.name = name;
         this.status = ItemStatus.ACTIVE;
         this.createdAt = Instant.now();
@@ -48,6 +58,10 @@ public class ItemEntity {
 
     public ItemStatus getStatus() {
         return status;
+    }
+
+    void setList(final ListEntity list) {
+        this.list = list;
     }
 
     public void markDone() {
@@ -82,7 +96,7 @@ public class ItemEntity {
         this.archivedAt = null;
     }
 
-    public void remove() {
+    public void softDelete() {
         if (this.status == ItemStatus.ARCHIVED) {
             throw new IllegalStateException(
                     "Archived items cannot be removed");
