@@ -1,4 +1,4 @@
-package com.task_collab.task_collab;
+package com.task_collab;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
