@@ -1,3 +1,5 @@
+package com.task_collab.entities;
+
 import java.time.Instant;
 import java.util.UUID;
 
