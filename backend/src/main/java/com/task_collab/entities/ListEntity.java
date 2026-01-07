@@ -1,9 +1,6 @@
 package com.task_collab.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,12 +16,16 @@ public class ListEntity {
 
     private String title;
 
-    @OneToMany(mappedBy = "list")
+    @OneToMany(
+            mappedBy = "list",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private final List<ItemEntity> items = new ArrayList<>();
 
     private Instant createdAt;
 
-    @OneToMany
     private final List<AuditEntry> auditLog = new ArrayList<>();
 
     public ListEntity(final String title) {
@@ -42,13 +43,18 @@ public class ListEntity {
         return List.copyOf(auditLog);
     }
 
+    private void addItem(final ItemEntity item) {
+        items.add(item);
+        item.setList(this);
+    }
+
     public void addItem(final String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Item name cannot be empty");
         }
 
         ItemEntity newItem = new ItemEntity(name);
-        items.add(newItem);
+        addItem(newItem);
 
         auditLog.add(new AuditEntry(
                 "ITEM_CREATED",
@@ -58,8 +64,13 @@ public class ListEntity {
         ));
     }
 
+    private void hardDeleteItem(final ItemEntity item) {
+        items.remove(item);
+        item.setList(null);
+    }
+
     public void hardDeleteItem(final UUID itemId) {
-        items.remove(findItem(itemId));
+        hardDeleteItem(findItem(itemId));
 
         auditLog.add(new AuditEntry(
                 "ITEM_HARD_DELETED",
@@ -102,8 +113,8 @@ public class ListEntity {
         ));
     }
 
-    public void removeItem(final UUID itemId) {
-        findItem(itemId).remove();
+    public void softDeleteItem(final UUID itemId) {
+        findItem(itemId).softDelete();
 
         auditLog.add(new AuditEntry(
                 "ITEM_REMOVED",

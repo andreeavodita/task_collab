@@ -25,7 +25,8 @@ public class ItemEntity {
 
     private Instant archivedAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "list_id", nullable = false)
     private ListEntity list;
 
 
@@ -50,6 +51,10 @@ public class ItemEntity {
 
     public ItemStatus getStatus() {
         return status;
+    }
+
+    void setList(final ListEntity list) {
+        this.list = list;
     }
 
     public void markDone() {
@@ -84,7 +89,7 @@ public class ItemEntity {
         this.archivedAt = null;
     }
 
-    public void remove() {
+    public void softDelete() {
         if (this.status == ItemStatus.ARCHIVED) {
             throw new IllegalStateException(
                     "Archived items cannot be removed");
