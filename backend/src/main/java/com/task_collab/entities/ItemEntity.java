@@ -1,20 +1,20 @@
 package com.task_collab.entities;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.UUID;
 
-enum ItemStatus {
-    ACTIVE,
-    DONE,
-    REMOVED,
-    ARCHIVED
-}
-
+@Entity
 public class ItemEntity {
+
+    @Id
+    @GeneratedValue
     private UUID id;
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
     private ItemStatus status;
 
     private Instant createdAt;
@@ -25,9 +25,11 @@ public class ItemEntity {
 
     private Instant archivedAt;
 
+    @ManyToOne
+    private ListEntity list;
+
 
     public ItemEntity(final String name) {
-        this.id = UUID.randomUUID();
         this.name = name;
         this.status = ItemStatus.ACTIVE;
         this.createdAt = Instant.now();

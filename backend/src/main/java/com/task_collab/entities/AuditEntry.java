@@ -1,15 +1,23 @@
 package com.task_collab.entities;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
 import java.time.Instant;
 import java.util.UUID;
 
+@Entity
 public class AuditEntry {
-    private final UUID id;
-    private final Instant occuredAt;
-    private final String action;
-    private final UUID listId;
-    private final UUID itemId;
-    private final String details;
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+    private Instant occurredAt;
+    private String action;
+    private UUID listId;
+    private UUID itemId;
+    private String details;
 
     public AuditEntry(
             final String action,
@@ -17,11 +25,13 @@ public class AuditEntry {
             final UUID itemId,
             final String details
     ) {
-        this.id = UUID.randomUUID();
-        this.occuredAt = Instant.now();
+        this.occurredAt = Instant.now();
         this.action = action;
         this.listId = listId;
         this.itemId = itemId;
         this.details = details;
     }
+
+    protected AuditEntry() {}
+
 }

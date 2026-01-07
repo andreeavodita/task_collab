@@ -1,24 +1,33 @@
 package com.task_collab.entities;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
 public class ListEntity {
 
+    @Id
+    @GeneratedValue
     private UUID id;
 
     private String title;
 
+    @OneToMany(mappedBy = "list")
     private final List<ItemEntity> items = new ArrayList<>();
 
     private Instant createdAt;
 
+    @OneToMany
     private final List<AuditEntry> auditLog = new ArrayList<>();
 
     public ListEntity(final String title) {
-        this.id = UUID.randomUUID();
         this.title = title;
         this.createdAt = Instant.now();
     }
