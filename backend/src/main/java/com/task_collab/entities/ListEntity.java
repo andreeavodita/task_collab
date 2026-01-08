@@ -44,6 +44,12 @@ public class ListEntity {
         return List.copyOf(auditLog);
     }
 
+    public UUID getId() { return id; }
+
+    public String getTitle() {
+        return title;
+    }
+
     private void addItem(final ItemEntity item) {
         items.add(item);
         item.setList(this);
