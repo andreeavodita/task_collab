@@ -50,6 +50,10 @@ public class ListEntity {
         return title;
     }
 
+    public ItemEntity getItem(UUID itemId) {
+        return items.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElseThrow();
+    }
+
     private void addItem(final ItemEntity item) {
         items.add(item);
         item.setList(this);
