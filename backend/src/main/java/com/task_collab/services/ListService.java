@@ -1,5 +1,6 @@
 package com.task_collab.services;
 
+import com.task_collab.entities.ItemEntity;
 import com.task_collab.entities.ListEntity;
 import com.task_collab.repositories.ListRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,12 @@ public class ListService {
     @Transactional(readOnly = true)
     public ListEntity getList(UUID id) {
         return listRepository.findById(id).orElseThrow();
+    }
+
+    @Transactional(readOnly = true)
+    public ItemEntity getItem(UUID listId, UUID itemId) {
+        ListEntity list = listRepository.findById(listId).orElseThrow();
+        return list.getItem(itemId);
     }
 
     @Transactional

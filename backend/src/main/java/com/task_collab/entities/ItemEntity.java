@@ -60,6 +60,22 @@ public class ItemEntity {
         return status;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
+    public Instant getRemovedAt() {
+        return removedAt;
+    }
+
+    public Instant getArchivedAt() {
+        return archivedAt;
+    }
+
     void setList(final ListEntity list) {
         this.list = list;
     }
