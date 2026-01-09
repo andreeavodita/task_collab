@@ -1,5 +1,6 @@
 package com.task_collab.entities;
 
+import com.task_collab.exceptions.NotFoundException;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -50,10 +51,6 @@ public class ListEntity {
         return title;
     }
 
-    public ItemEntity getItem(UUID itemId) {
-        return items.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElseThrow();
-    }
-
     private void addItem(final ItemEntity item) {
         items.add(item);
         item.setList(this);
@@ -95,11 +92,11 @@ public class ListEntity {
         this.title = title;
     }
 
-    private ItemEntity findItem(final UUID itemId) {
+    public ItemEntity findItem(final UUID itemId) {
         return items.stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("Item not found"));
     }
 
     public void markItemDone(final UUID itemId) {
