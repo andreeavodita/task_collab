@@ -99,6 +99,17 @@ public class ListEntity {
                 .orElseThrow(() -> new NotFoundException("Item not found"));
     }
 
+    public void renameItem(UUID itemId, String name) {
+        findItem(itemId).rename(name);
+
+        auditLog.add(new AuditEntry(
+                "ITEM_RENAMED",
+                this.id,
+                itemId,
+                name
+        ));
+    }
+
     public void markItemDone(final UUID itemId) {
         findItem(itemId).markDone();
 
@@ -115,6 +126,17 @@ public class ListEntity {
 
         auditLog.add(new AuditEntry(
                 "ITEM_MARKED_ACTIVE",
+                this.id,
+                itemId,
+                null
+        ));
+    }
+
+    public void restoreItem(UUID itemId) {
+        findItem(itemId).restore();
+
+        auditLog.add(new AuditEntry(
+                "ITEM_RESTORED",
                 this.id,
                 itemId,
                 null

@@ -54,6 +54,13 @@ public class ListController {
         listService.addItem(id, request.getName());
     }
 
+    @PutMapping("/{id}/items/{itemId}")
+    public void renameItem(@PathVariable UUID id,
+                           @PathVariable UUID itemId,
+                           @Valid @RequestBody AddItemRequest request) {
+        listService.renameItem(id, itemId, request.getName());
+    }
+
     @DeleteMapping("/{id}/items/{itemId}")
     public void deleteItem(@PathVariable UUID id,
                            @PathVariable UUID itemId) {
@@ -71,6 +78,14 @@ public class ListController {
             case REMOVED -> listService.softDeleteItem(id, itemId);
             case ARCHIVED -> listService.archiveItem(id, itemId);
         }
+
+        return new ItemResponse(listService.getItem(id, itemId));
+    }
+
+    @PostMapping("/{id}/items/{itemId}/restore")
+    public ItemResponse restoreItem(@PathVariable UUID id,
+                                    @PathVariable UUID itemId) {
+        listService.restoreItem(id, itemId);
 
         return new ItemResponse(listService.getItem(id, itemId));
     }
