@@ -4,6 +4,8 @@ import com.task_collab.entities.ItemEntity;
 import com.task_collab.entities.ListEntity;
 import com.task_collab.exceptions.NotFoundException;
 import com.task_collab.repositories.ListRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +22,8 @@ public class ListService {
     }
 
     @Transactional(readOnly = true)
-    public List<ListEntity> getAllLists() {
-        return listRepository.findAll();
+    public Page<ListEntity> getAllLists(Pageable pageable) {
+        return listRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

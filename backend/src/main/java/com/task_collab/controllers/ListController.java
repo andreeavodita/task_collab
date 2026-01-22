@@ -8,6 +8,8 @@ import com.task_collab.dto.StatusModificationRequest;
 import com.task_collab.entities.ListEntity;
 import com.task_collab.services.ListService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,10 +30,9 @@ public class ListController {
         return new ListResponse(listService.getList(id));
     }
 
-    @GetMapping("")
-    public List<ListResponse> getAllLists() {
-        List<ListEntity> lists = listService.getAllLists();
-        return lists.stream().map(ListResponse::new).toList();
+    @GetMapping
+    public Page<ListResponse> getAllLists(Pageable pageable) {
+        return listService.getAllLists(pageable).map(ListResponse::new);
     }
 
     @DeleteMapping("/{id}")
