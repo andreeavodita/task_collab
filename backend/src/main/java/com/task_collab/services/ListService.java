@@ -59,6 +59,18 @@ public class ListService {
     }
 
     @Transactional
+    public void renameItem(final UUID listId, final UUID itemId, final String name) {
+        ListEntity list = listRepository.findById(listId).orElseThrow(NotFoundException::new);
+        list.renameItem(itemId, name);
+    }
+
+    @Transactional
+    public void restoreItem(final UUID listId, final UUID itemId) {
+        ListEntity list = listRepository.findById(listId).orElseThrow(NotFoundException::new);
+        list.restoreItem(itemId);
+    }
+
+    @Transactional
     public void softDeleteItem(final UUID listId, final UUID itemId) {
         ListEntity list = listRepository.findById(listId).orElseThrow(NotFoundException::new);
         list.softDeleteItem(itemId);
