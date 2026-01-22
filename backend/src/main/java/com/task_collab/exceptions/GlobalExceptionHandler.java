@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class})
     public ResponseEntity<ErrorResponse> handleInvalidJson(HttpMessageNotReadableException ex,
                                                            HttpServletRequest request) {
 
@@ -59,6 +59,21 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(
                         "BAD_REQUEST",
                         "Malformed request body or invalid value",
+                        Instant.now(),
+                        request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(400)
+                .body(new ErrorResponse(
+                        "BAD_REQUEST",
+                        "Invalid parameter value",
                         Instant.now(),
                         request.getRequestURI()
                 ));
