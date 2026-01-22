@@ -1,13 +1,13 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:taskmanager
+    url: jdbc:h2:file:./data/taskmanager
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
 
   h2:

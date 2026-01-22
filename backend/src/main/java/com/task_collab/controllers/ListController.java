@@ -7,6 +7,7 @@ import com.task_collab.dto.ListResponse;
 import com.task_collab.dto.StatusModificationRequest;
 import com.task_collab.entities.ListEntity;
 import com.task_collab.services.ListService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,17 +40,17 @@ public class ListController {
     }
 
     @PostMapping
-    public void createList(@RequestBody CreateListRequest request) {
+    public void createList(@Valid @RequestBody CreateListRequest request) {
         listService.createList(request.getTitle());
     }
 
     @PutMapping("/{id}")
-    public void renameList(@PathVariable UUID id, @RequestBody CreateListRequest request) {
+    public void renameList(@PathVariable UUID id, @Valid @RequestBody CreateListRequest request) {
         listService.renameList(id, request.getTitle());
     }
 
     @PostMapping("/{id}/items")
-    public void addItem(@PathVariable UUID id, @RequestBody AddItemRequest request) {
+    public void addItem(@PathVariable UUID id, @Valid @RequestBody AddItemRequest request) {
         listService.addItem(id, request.getName());
     }
 
@@ -62,7 +63,7 @@ public class ListController {
     @PatchMapping("/{id}/items/{itemId}")
     public ItemResponse modifyItemStatus(@PathVariable UUID id,
                                          @PathVariable UUID itemId,
-                                         @RequestBody StatusModificationRequest request) {
+                                         @Valid @RequestBody StatusModificationRequest request) {
 
         switch (request.getStatus()) {
             case ACTIVE -> listService.markItemActive(id, itemId);
