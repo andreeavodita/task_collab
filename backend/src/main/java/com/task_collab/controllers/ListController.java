@@ -4,15 +4,14 @@ import com.task_collab.dto.AddItemRequest;
 import com.task_collab.dto.CreateListRequest;
 import com.task_collab.dto.ItemResponse;
 import com.task_collab.dto.ListResponse;
+import com.task_collab.dto.ListSummaryResponse;
 import com.task_collab.dto.StatusModificationRequest;
-import com.task_collab.entities.ListEntity;
 import com.task_collab.services.ListService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,8 +30,9 @@ public class ListController {
     }
 
     @GetMapping
-    public Page<ListResponse> getAllLists(Pageable pageable) {
-        return listService.getAllLists(pageable).map(ListResponse::new);
+    public Page<ListSummaryResponse> getAllLists(Pageable pageable) {
+        return listService.getAllLists(pageable).map(list ->
+                new ListSummaryResponse(list.getId(), list.getTitle(), list.getItems().size(), list.getCreatedAt()));
     }
 
     @DeleteMapping("/{id}")

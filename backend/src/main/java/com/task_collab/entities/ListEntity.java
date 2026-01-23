@@ -51,6 +51,10 @@ public class ListEntity {
         return title;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     private void addItem(final ItemEntity item) {
         items.add(item);
         item.setList(this);
