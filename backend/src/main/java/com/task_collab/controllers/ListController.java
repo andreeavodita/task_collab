@@ -2,7 +2,6 @@ package com.task_collab.controllers;
 
 import com.task_collab.dto.AddItemRequest;
 import com.task_collab.dto.CreateListRequest;
-import com.task_collab.dto.ItemResponse;
 import com.task_collab.dto.ListResponse;
 import com.task_collab.dto.ListSummaryResponse;
 import com.task_collab.dto.StatusModificationRequest;
@@ -10,8 +9,11 @@ import com.task_collab.services.ListService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -25,51 +27,71 @@ public class ListController {
     }
 
     @GetMapping("/{id}")
-    public ListResponse getList(@PathVariable UUID id) {
-        return new ListResponse(listService.getList(id));
+    public ResponseEntity<ListResponse> getList(@PathVariable UUID id) {
+        return ResponseEntity.ok(new ListResponse(listService.getList(id)));
     }
 
     @GetMapping
-    public Page<ListSummaryResponse> getAllLists(Pageable pageable) {
-        return listService.getAllLists(pageable).map(list ->
-                new ListSummaryResponse(list.getId(), list.getTitle(), list.getItems().size(), list.getCreatedAt()));
+    public ResponseEntity<Page<ListSummaryResponse>> getAllLists(Pageable pageable) {
+        return ResponseEntity.ok(listService.getAllLists(pageable).map(list ->
+                new ListSummaryResponse(list.getId(), list.getTitle(), list.getItems().size(), list.getCreatedAt())));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteList(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteList(@PathVariable UUID id) {
         listService.deleteList(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public void createList(@Valid @RequestBody CreateListRequest request) {
-        listService.createList(request.getTitle());
+    public ResponseEntity<Void> createList(@Valid @RequestBody CreateListRequest request) {
+        UUID id = listService.createList(request.getTitle());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(id)
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/{id}")
-    public void renameList(@PathVariable UUID id, @Valid @RequestBody CreateListRequest request) {
+    public ResponseEntity<Void> renameList(@PathVariable UUID id, @Valid @RequestBody CreateListRequest request) {
         listService.renameList(id, request.getTitle());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/items")
-    public void addItem(@PathVariable UUID id, @Valid @RequestBody AddItemRequest request) {
-        listService.addItem(id, request.getName());
+    public ResponseEntity<Void> addItem(@PathVariable UUID id, @Valid @RequestBody AddItemRequest request) {
+        UUID itemId = listService.addItem(id, request.getName());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{itemId}")
+                .buildAndExpand(itemId)
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/{id}/items/{itemId}")
-    public void renameItem(@PathVariable UUID id,
+    public ResponseEntity<Void> renameItem(@PathVariable UUID id,
                            @PathVariable UUID itemId,
                            @Valid @RequestBody AddItemRequest request) {
         listService.renameItem(id, itemId, request.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
-    public void deleteItem(@PathVariable UUID id,
+    public ResponseEntity<Void> deleteItem(@PathVariable UUID id,
                            @PathVariable UUID itemId) {
         listService.hardDeleteItem(id, itemId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/items/{itemId}")
-    public ItemResponse modifyItemStatus(@PathVariable UUID id,
+    public ResponseEntity<Void> modifyItemStatus(@PathVariable UUID id,
                                          @PathVariable UUID itemId,
                                          @Valid @RequestBody StatusModificationRequest request) {
 
@@ -80,15 +102,15 @@ public class ListController {
             case ARCHIVED -> listService.archiveItem(id, itemId);
         }
 
-        return new ItemResponse(listService.getItem(id, itemId));
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/items/{itemId}/restore")
-    public ItemResponse restoreItem(@PathVariable UUID id,
+    public ResponseEntity<Void> restoreItem(@PathVariable UUID id,
                                     @PathVariable UUID itemId) {
         listService.restoreItem(id, itemId);
 
-        return new ItemResponse(listService.getItem(id, itemId));
+        return ResponseEntity.noContent().build();
     }
 
 }
