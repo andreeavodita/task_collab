@@ -38,9 +38,10 @@ public class ListService {
     }
 
     @Transactional
-    public void createList(final String title) {
+    public UUID createList(final String title) {
         ListEntity list = new ListEntity(title);
         listRepository.save(list);
+        return list.getId();
     }
 
     @Transactional
@@ -55,9 +56,9 @@ public class ListService {
     }
 
     @Transactional
-    public void addItem(final UUID listId, final String name) {
+    public UUID addItem(final UUID listId, final String name) {
         ListEntity list = listRepository.findById(listId).orElseThrow(NotFoundException::new);
-        list.addItem(name);
+        return list.addItem(name);
     }
 
     @Transactional

@@ -60,7 +60,7 @@ public class ListEntity {
         item.setList(this);
     }
 
-    public void addItem(final String name) {
+    public UUID addItem(final String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Item name cannot be empty");
         }
@@ -74,6 +74,8 @@ public class ListEntity {
                 newItem.getId(),
                 "Item created with name: " + name
         ));
+
+        return newItem.getId();
     }
 
     private void hardDeleteItem(final ItemEntity item) {
