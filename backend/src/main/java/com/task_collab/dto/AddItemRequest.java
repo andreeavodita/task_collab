@@ -10,4 +10,12 @@ public class AddItemRequest {
     public String getName() {
         return name;
     }
+
+    protected AddItemRequest() {
+        // for Jackson
+    }
+
+    public AddItemRequest(String name) {
+        this.name = name;
+    }
 }
