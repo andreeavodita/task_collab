@@ -11,4 +11,12 @@ public class StatusModificationRequest {
     public ItemStatus getStatus() {
         return status;
     }
+
+    public StatusModificationRequest(ItemStatus status) {
+        this.status = status;
+    }
+
+    protected StatusModificationRequest() {
+        // for Jackson
+    }
 }

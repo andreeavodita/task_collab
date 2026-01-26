@@ -1,10 +1,6 @@
 package com.task_collab.controllers;
 
-import com.task_collab.dto.AddItemRequest;
-import com.task_collab.dto.CreateListRequest;
-import com.task_collab.dto.ListResponse;
-import com.task_collab.dto.ListSummaryResponse;
-import com.task_collab.dto.StatusModificationRequest;
+import com.task_collab.dto.*;
 import com.task_collab.services.ListService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -35,6 +31,11 @@ public class ListController {
     public ResponseEntity<Page<ListSummaryResponse>> getAllLists(Pageable pageable) {
         return ResponseEntity.ok(listService.getAllLists(pageable).map(list ->
                 new ListSummaryResponse(list.getId(), list.getTitle(), list.getItems().size(), list.getCreatedAt())));
+    }
+
+    @GetMapping("/{id}/items/{itemId}")
+    public ResponseEntity<ItemResponse> getItem(@PathVariable UUID id, @PathVariable UUID itemId) {
+        return ResponseEntity.ok(new ItemResponse(listService.getItem(id, itemId)));
     }
 
     @DeleteMapping("/{id}")

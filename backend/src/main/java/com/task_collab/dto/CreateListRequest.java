@@ -10,4 +10,12 @@ public class CreateListRequest {
     public String getTitle() {
         return title;
     }
+
+    protected CreateListRequest() {
+        // for Jackson
+    }
+
+    public CreateListRequest(String title) {
+        this.title = title;
+    }
 }
